@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dental-billing-mcp Architecture · v0.1.0-draft</title>
+  <title>dental-billing-mcp Architecture · v0.2.0-draft</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -26,9 +26,17 @@
       --accent-red: #f85149;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { min-width: 1024px; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+    @media (max-width: 900px) {
+      body { padding: 20px 16px !important; }
+      .layout { grid-template-columns: 1fr !important; gap: 24px !important; max-width: 100% !important; }
+      .sidebar { position: static !important; }
+      .main-header h1 { font-size: 22px !important; }
+      .diagram-card { padding: 20px !important; }
+      .diagram-scroll { margin: 0 -20px !important; padding: 0 20px !important; }
+      .detail-grid { grid-template-columns: 1fr !important; }
     }
     body {
       font-family: 'Inter', -apple-system, system-ui, sans-serif;
@@ -115,6 +123,12 @@
     .arrows-overlay {
       position: absolute; inset: 0; width: 100%; height: 100%;
       pointer-events: none; overflow: visible;
+    }
+    .arrows-overlay text {
+      paint-order: stroke fill;
+      stroke: #161b22;
+      stroke-width: 3px;
+      stroke-linejoin: round;
     }
 
     .node {
@@ -226,7 +240,7 @@
   <main class="layout">
     <aside class="sidebar">
       <div>
-        <span class="version-badge">v0.1.0-draft</span>
+        <span class="version-badge">v0.2.0-draft</span>
         <p class="tagline">Pre-submission dental claim review — MCP server that sits inside the office LAN.</p>
       </div>
 
@@ -441,6 +455,8 @@
                 <marker id="a-red"    markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f85149"/></marker>
               </defs>
 
+              <!-- ===== TOP ROW · PRACTICE-INTERNAL READS ===== -->
+
               <!-- PMS → Biller (chart + code fed to biller) -->
               <line x1="230" y1="120" x2="212" y2="120" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
               <text x="221" y="113" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">read</text>
@@ -448,9 +464,11 @@
               <!-- Imaging → PMS (reference link) -->
               <line x1="540" y1="130" x2="522" y2="130" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
 
-              <!-- Front-desk → PMS (demographics + eligibility) -->
-              <line x1="790" y1="125" x2="522" y2="125" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
-              <text x="656" y="118" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">demographics · eligibility</text>
+              <!-- Front-desk → PMS (demographics + eligibility) · routed OVER the top so it doesn't cross Imaging -->
+              <polyline points="915,70 915,50 400,50 400,68" fill="none" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
+              <text x="657" y="44" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">demographics · eligibility</text>
+
+              <!-- ===== MIDDLE ROW · OUR TOOL ===== -->
 
               <!-- Biller → Local Web UI (entry) -->
               <line x1="120" y1="195" x2="120" y2="248" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#a-blue)"/>
@@ -467,9 +485,9 @@
               <line x1="662" y1="280" x2="683" y2="280" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
               <text x="672" y="273" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">lookup</text>
 
-              <!-- MCP → Audit Log (append) -->
-              <line x1="662" y1="415" x2="683" y2="415" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
-              <text x="672" y="408" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">append</text>
+              <!-- MCP → Audit Log (append) · origin y=395 is inside MCP bottom; target y=395 is inside Audit Log top -->
+              <line x1="662" y1="395" x2="683" y2="395" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
+              <text x="672" y="388" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">append</text>
 
               <!-- MCP → Anthropic API (LLM fallback, gated, orange dashed) -->
               <line x1="663" y1="340" x2="898" y2="340" stroke="#f78166" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a-orange)"/>
@@ -479,30 +497,35 @@
               <line x1="420" y1="230" x2="420" y2="172" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a-green)"/>
               <text x="427" y="203" fill="#3fb950" font-family="JetBrains Mono" font-size="10" text-anchor="start">suggest fix (to biller)</text>
 
-              <!-- PMS → Clearinghouses (837D submission, CROSSES PLANE BOUNDARY) -->
-              <line x1="370" y1="172" x2="370" y2="608" stroke="#f78166" stroke-width="1.8" marker-end="url(#a-orange)"/>
-              <text x="382" y="390" fill="#f78166" font-family="JetBrains Mono" font-size="11" text-anchor="start">837D batch claims (PHI)</text>
+              <!-- ===== INTERPLANE CORRIDOR · LEFT RAIL ===== -->
+              <!-- Two parallel rails at x=215 (up, ERA return) and x=220 (down, 837D) -->
 
-              <!-- Clearinghouses → Payers (within Plane B) -->
+              <!-- PMS → Clearinghouses (837D submission) · routed via left corridor, AVOIDS MCP box -->
+              <polyline points="230,130 220,130 220,610" fill="none" stroke="#f78166" stroke-width="1.8" marker-end="url(#a-orange)"/>
+              <text x="227" y="500" fill="#f78166" font-family="JetBrains Mono" font-size="10" text-anchor="start">837D batch (PHI)</text>
+
+              <!-- Clearinghouses → PMS (remittance back, muted dashed) · parallel rail at x=215 -->
+              <polyline points="215,610 215,130 228,130" fill="none" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 4" marker-end="url(#a-muted)"/>
+              <text x="207" y="480" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="end">ERA · remit</text>
+
+              <!-- ===== PLANE B · SUBMISSION RAIL ===== -->
+
+              <!-- Clearinghouses → Payers (837D forward within Plane B) -->
               <line x1="272" y1="665" x2="288" y2="665" stroke="#f78166" stroke-width="1.5" marker-end="url(#a-orange)"/>
 
-              <!-- Payers → Clearinghouses (835 ERA, reverse return) -->
+              <!-- Payers → Clearinghouses (835 ERA return within Plane B) -->
               <line x1="290" y1="685" x2="270" y2="685" stroke="#6e7681" stroke-width="1.2" marker-end="url(#a-muted)"/>
               <text x="280" y="708" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">835 ERA</text>
 
-              <!-- Clearinghouses → PMS (remittance back, muted) -->
-              <line x1="125" y1="608" x2="125" y2="172" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 4" marker-end="url(#a-muted)"/>
-              <text x="132" y="390" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="start">ERA · remit</text>
+              <!-- ===== INTERPLANE CORRIDOR · RIGHT RAIL ===== -->
 
-              <!-- Front-desk → Eligibility Networks (side flow, 270/271) -->
-              <line x1="930" y1="172" x2="730" y2="608" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 4"/>
-              <line x1="730" y1="608" x2="730" y2="608" stroke="#6e7681" stroke-width="1.0" marker-end="url(#a-muted)"/>
-              <text x="820" y="400" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">270/271</text>
+              <!-- Front-desk → Eligibility Networks (270/271) · routed via right edge, entering Eligibility from TOP (not right — avoids Denial Review box) -->
+              <polyline points="1040,125 1085,125 1085,580 730,580 730,608" fill="none" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 4" marker-end="url(#a-muted)"/>
+              <text x="1078" y="418" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="end">270/271</text>
 
-              <!-- Denial Review future -->
-              <line x1="970" y1="608" x2="970" y2="480" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 3"/>
-              <line x1="970" y1="480" x2="663" y2="480" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 3" marker-end="url(#a-muted)"/>
-              <text x="820" y="473" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">835 denial feedback (v1.2)</text>
+              <!-- Denial Review (future v1.2) → MCP · clean L-route through Plane A bottom corridor -->
+              <polyline points="970,610 970,495 500,495 500,395" fill="none" stroke="#6e7681" stroke-width="1.0" stroke-dasharray="3 3" marker-end="url(#a-muted)"/>
+              <text x="735" y="489" fill="#6e7681" font-family="JetBrains Mono" font-size="9" text-anchor="middle">835 denial feedback (v1.2)</text>
 
             </svg>
 
@@ -691,7 +714,15 @@
       </section>
 
       <p class="footer">
-        dental-billing-mcp · greenfield design (no repo yet) · generated 2026-04-24
+        <a href="https://intentsolutions.io">intentsolutions.io</a>
+        &nbsp;·&nbsp;
+        <a href="https://demos.intentsolutions.io/privacy.html">Privacy Policy</a>
+        &nbsp;·&nbsp;
+        <a href="https://demos.intentsolutions.io/terms.html">Terms of Service</a>
+        &nbsp;·&nbsp;
+        <a href="https://demos.intentsolutions.io/acceptable-use.html">Acceptable Use</a>
+        &nbsp;·&nbsp;
+        dental-billing-mcp v0.2.0-draft · generated 2026-04-24
       </p>
     </section>
   </main>
